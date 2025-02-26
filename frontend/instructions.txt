@@ -1,0 +1,25 @@
+The solution has been implemented in a separate repository, which can be accessed via the following link:
+https://github.com/mmc03-ucb/devsoc_recruitment_fe.git
+
+Steps to Open the Solution in a Browser
+
+Clone the Repository:
+First, clone the repository to your local machine by running the following command in your terminal:
+git clone https://github.com/mmc03-ucb/devsoc_recruitment_fe.git
+
+Navigate to the Project Directory:
+Change to the project folder:
+cd devsoc_recruitment_fe
+
+Install Dependencies:
+Install the required dependencies by running:
+npm install
+
+Start the Development Server:
+Start the server to run the project locally:
+npm run dev
+
+Open the Project in Your Browser:
+After starting the server, open your browser and navigate to the link showed on terminal
+
+You should now see the application running.
