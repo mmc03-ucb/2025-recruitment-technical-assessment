@@ -32,7 +32,7 @@ class Ingredient(CookbookEntry):
 app = Flask(__name__)
 
 # Store your recipes here!
-cookbook = None
+cookbook = {}
 
 
 # Task 1 helper (don't touch)
@@ -68,8 +68,36 @@ def parse_handwriting(recipeName: str) -> Union[str, None]:
 # Endpoint that adds a CookbookEntry to your magical cookbook
 @app.route("/entry", methods=["POST"])
 def create_entry():
-    # TODO: implement me
-    return "not implemented", 500
+    data = request.get_json()
+    # Can be only recipe or ingredient
+    if data["type"] not in ["recipe", "ingredient"]:
+        return (
+            jsonify({"error": "Invalid type. It must be 'recipe' or 'ingredient'."}),
+            400,
+        )
+    # Check if the name is unique
+    if data["name"] in cookbook:
+        return jsonify({"error": "Entry name must be unique."}), 400
+    # Ingredient entries
+    if data["type"] == "ingredient":
+        # Ensure cookTime is >= 0
+        if data.get("cookTime", -1) < 0:
+            return jsonify({"error": "Invalid cookTime. It must be >= 0."}), 400
+        # Add to the cookbook
+        cookbook[data["name"]] = data
+        return jsonify({}), 200
+    # Recipe Entries
+    # Recipe Entries
+    if data["type"] == "recipe":
+        required_items_names = set()
+        for item in data.get("requiredItems", []):
+            # Compare only the name of the item, not the entire dictionary
+            if item["name"] in required_items_names:
+                return jsonify({"error": "Required items must have unique names."}), 400
+            required_items_names.add(item["name"])
+
+        cookbook[data["name"]] = data
+        return jsonify({}), 200
 
 
 # [TASK 3] ====================================================================

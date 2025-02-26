@@ -22,8 +22,44 @@ describe("Task 1", () => {
       const response = await getTask1("");
       expect(response.status).toBe(400);
     });
+
+    it("multiple hyphens and underscores", async () => {
+      const response = await getTask1("meatball___special-case___with__extra");
+      expect(response.body).toStrictEqual({ msg: "Meatball Special Case With Extra" });
+    });
+
+    it("leading and trailing spaces", async () => {
+      const response = await getTask1("   Skibidi spaghetti   ");
+      expect(response.body).toStrictEqual({ msg: "Skibidi Spaghetti" });
+    });
+
+    it("multiple spaces between words", async () => {
+      const response = await getTask1("Skibidi___Spaghetti  ");
+      expect(response.body).toStrictEqual({ msg: "Skibidi Spaghetti" });
+    });
+
+    it("input already in correct format", async () => {
+      const response = await getTask1("Meatball");
+      expect(response.body).toStrictEqual({ msg: "Meatball" });
+    });
+
+    it("input with invalid characters", async () => {
+      const response = await getTask1("Spaghetti$&@");
+      expect(response.body).toStrictEqual({ msg: "Spaghetti" });
+    });
+
+    it("empty input returns error", async () => {
+      const response = await getTask1("!!!");
+      expect(response.status).toBe(400);
+    });
+
+    it("input with single letter", async () => {
+      const response = await getTask1("s");
+      expect(response.body).toStrictEqual({ msg: "S" });
+    });
   });
 });
+
 
 describe("Task 2", () => {
   describe("POST /entry", () => {
@@ -53,7 +89,7 @@ describe("Task 2", () => {
       expect(resp1.status).toBe(200);
     });
 
-    it("Congratulations u burnt the pan pt2", async () => {
+    it("Ingredient with invalid cookTime", async () => {
       const resp = await putTask2({
         type: "ingredient",
         name: "beef",
@@ -62,7 +98,7 @@ describe("Task 2", () => {
       expect(resp.status).toBe(400);
     });
 
-    it("Congratulations u burnt the pan pt3", async () => {
+    it("Invalid type: 'pan'", async () => {
       const resp = await putTask2({
         type: "pan",
         name: "pan",
@@ -89,12 +125,58 @@ describe("Task 2", () => {
       const resp3 = await putTask2({
         type: "recipe",
         name: "Beef",
-        cookTime: 8,
+        requiredItems: [{ name: "Egg", quantity: 1 }],
       });
       expect(resp3.status).toBe(400);
     });
+
+    it("Recipe with unique requiredItems names", async () => {
+      const meatball = {
+        type: "recipe",
+        name: "Meatball",
+        requiredItems: [
+          { name: "Beef", quantity: 1 },
+          { name: "Beef", quantity: 2 }, // Duplicate item name
+        ],
+      };
+      const resp = await putTask2(meatball);
+      expect(resp.status).toBe(400);
+    });
+
+    it("Recipe with valid requiredItems", async () => {
+      const meatball = {
+        type: "recipe",
+        name: "other",
+        requiredItems: [
+          { name: "Beef", quantity: 1 },
+          { name: "Egg", quantity: 2 },
+        ],
+      };
+      const resp = await putTask2(meatball);
+      expect(resp.status).toBe(200);
+    });
+
+    it("Recipe with no requiredItems", async () => {
+      const recipe = {
+        type: "recipe",
+        name: "Salted Beef",
+        requiredItems: [], // No required items
+      };
+      const resp = await putTask2(recipe);
+      expect(resp.status).toBe(200);
+    });
+
+    it("Recipe with missing requiredItems field", async () => {
+      const recipe = {
+        type: "recipe",
+        name: "Egg Salad",
+      }; // Missing requiredItems field
+      const resp = await putTask2(recipe);
+      expect(resp.status).toBe(200); // Should still work, as 'requiredItems' is optional
+    });
   });
 });
+
 
 describe("Task 3", () => {
   describe("GET /summary", () => {
