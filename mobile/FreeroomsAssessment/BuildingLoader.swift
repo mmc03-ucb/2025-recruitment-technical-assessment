@@ -30,6 +30,40 @@ public class BuildingLoader {
         if case .failure = result {
             return .failure(Error.connectivity)
         }
-        return .success([])
+        
+        // Extract data and response
+        guard case .success(let (data, httpResponse)) = result else {
+                return .failure(Error.connectivity) 
+            }
+            
+        // Ensure the response has status code 200
+        guard httpResponse.statusCode == 200 else {
+            return .failure(Error.invalidData)
+        }
+        
+        // decode the JSON data
+        do {
+            let remoteBuildings = try JSONDecoder().decode([RemoteBuilding].self, from: data)
+            
+            // Convert RemoteBuilding objects to Building objects
+            var buildings: [Building] = []
+            for remoteBuilding in remoteBuildings {
+                let building = Building(
+                    name: remoteBuilding.building_name,
+                    id: remoteBuilding.building_id.uuidString,
+                    latitude: remoteBuilding.building_latitude,
+                    longitude: remoteBuilding.building_longitude,
+                    aliases: remoteBuilding.building_aliases
+                )
+                buildings.append(building)
+            }
+            
+            // Return the successfully fetched and converted buildings
+            return .success(buildings)
+            
+        } catch {
+            // JSON decoding failure
+            return .failure(Error.invalidData)
+        }
     }
 }
