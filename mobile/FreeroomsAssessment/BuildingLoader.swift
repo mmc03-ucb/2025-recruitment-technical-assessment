@@ -22,7 +22,14 @@ public class BuildingLoader {
         self.url = url
     }
     
-    public func fetchBuildings() async -> Result  {
-        fatalError("TODO")
+    public func fetchBuildings() async -> Result {
+        // Fetch data from the network
+        let result = await client.get(from: url)
+        
+        // Check if the network request failed
+        if case .failure = result {
+            return .failure(Error.connectivity)
+        }
+        return .success([])
     }
 }
