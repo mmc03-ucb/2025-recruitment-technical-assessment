@@ -104,7 +104,15 @@ def create_entry():
 # Endpoint that returns a summary of a recipe that corresponds to a query name
 @app.route("/summary", methods=["GET"])
 def summary():
-    # TODO: implement me
+    recipe_name = request.args.get("name")
+
+    # Recipe not in cookbook
+    if not cookbook or recipe_name not in cookbook:
+        return jsonify({"error": "Recipe not found."}), 400
+    # Type is ingredient
+    if cookbook[recipe_name]["type"] == "ingredient":
+        return jsonify({"error": "Requested name is an ingredient, not a recipe."}), 400
+
     return "not implemented", 500
 
 
