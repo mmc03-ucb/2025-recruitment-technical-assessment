@@ -113,6 +113,11 @@ def summary():
     if cookbook[recipe_name]["type"] == "ingredient":
         return jsonify({"error": "Requested name is an ingredient, not a recipe."}), 400
 
+    # Check if all required items exist in the cookbook
+    for item in cookbook[recipe_name].get("requiredItems", []):
+        if item["name"] not in cookbook:
+            return jsonify({"error": f"Missing required item: {item['name']}"}), 400
+
     return "not implemented", 500
 
 
