@@ -118,7 +118,54 @@ def summary():
         if item["name"] not in cookbook:
             return jsonify({"error": f"Missing required item: {item['name']}"}), 400
 
-    return "not implemented", 500
+    # Function to recursively gather base ingredients and compute total cook time
+    def get_recipe_summary(recipe_name):
+        recipe = cookbook[recipe_name]
+        total_cook_time = 0
+        ingredients_count = {}
+
+        for item in recipe.get("requiredItems", []):
+            item_name = item["name"]
+            item_quantity = item["quantity"]
+
+            if cookbook[item_name]["type"] == "ingredient":
+                # Add cook time based on quantity
+                total_cook_time += cookbook[item_name]["cookTime"] * item_quantity
+
+                # Track ingredient quantities
+                if item_name in ingredients_count:
+                    ingredients_count[item_name] += item_quantity
+                else:
+                    ingredients_count[item_name] = item_quantity
+
+            elif cookbook[item_name]["type"] == "recipe":
+                # Recurse if the item is a recipe
+                sub_cook_time, sub_ingredients = get_recipe_summary(item_name)
+                total_cook_time += sub_cook_time * item_quantity
+
+                # Merge ingredient quantities
+                for ingr_name, ingr_quantity in sub_ingredients.items():
+                    if ingr_name in ingredients_count:
+                        ingredients_count[ingr_name] += ingr_quantity * item_quantity
+                    else:
+                        ingredients_count[ingr_name] = ingr_quantity * item_quantity
+
+        return total_cook_time, ingredients_count
+
+    # Compute recipe summary
+    cook_time, ingredient_counts = get_recipe_summary(recipe_name)
+
+    # Format final response
+    response = {
+        "name": recipe_name,
+        "cookTime": cook_time,
+        "ingredients": [
+            {"name": name, "quantity": quantity}
+            for name, quantity in ingredient_counts.items()
+        ],
+    }
+
+    return jsonify(response), 200
 
 
 # =============================================================================
