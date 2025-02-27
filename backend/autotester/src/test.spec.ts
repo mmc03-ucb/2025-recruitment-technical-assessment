@@ -207,37 +207,86 @@ describe("Task 3", () => {
       expect(resp2.status).toBe(400);
     });
 
-    // it("Unknown missing item", async () => {
-    //   const cheese = {
-    //     type: "recipe",
-    //     name: "Cheese",
-    //     requiredItems: [{ name: "Not Real", quantity: 1 }],
-    //   };
-    //   const resp1 = await postEntry(cheese);
-    //   expect(resp1.status).toBe(200);
+    it("Unknown missing item", async () => {
+      const cheese = {
+        type: "recipe",
+        name: "Cheese",
+        requiredItems: [{ name: "Not Real", quantity: 1 }],
+      };
+      const resp1 = await postEntry(cheese);
+      expect(resp1.status).toBe(200);
 
-    //   const resp2 = await getTask3("Cheese");
-    //   expect(resp2.status).toBe(400);
-    // });
+      const resp2 = await getTask3("Cheese");
+      expect(resp2.status).toBe(400);
+    });
 
-    // it("Bro cooked", async () => {
-    //   const meatball = {
-    //     type: "recipe",
-    //     name: "Skibidi",
-    //     requiredItems: [{ name: "Bruh", quantity: 1 }],
-    //   };
-    //   const resp1 = await postEntry(meatball);
-    //   expect(resp1.status).toBe(200);
+    it("Bro cooked", async () => {
+      const meatball = {
+        type: "recipe",
+        name: "Skibidi",
+        requiredItems: [{ name: "Bruh", quantity: 1 }],
+      };
+      const resp1 = await postEntry(meatball);
+      expect(resp1.status).toBe(200);
 
-    //   const resp2 = await postEntry({
-    //     type: "ingredient",
-    //     name: "Bruh",
-    //     cookTime: 2,
-    //   });
-    //   expect(resp2.status).toBe(200);
+      const resp2 = await postEntry({
+        type: "ingredient",
+        name: "Bruh",
+        cookTime: 2,
+      });
+      expect(resp2.status).toBe(200);
 
-    //   const resp3 = await getTask3("Skibidi");
-    //   expect(resp3.status).toBe(200);
-    // });
+      const resp3 = await getTask3("Skibidi");
+      expect(resp3.status).toBe(200);
+    });
+
+
+    it("Recipe with zero cookTime ingredients", async () => {
+      await postEntry({ type: "ingredient", name: "Salt", cookTime: 0 });
+
+      await postEntry({
+        type: "recipe",
+        name: "Salty Water",
+        requiredItems: [{ name: "Salt", quantity: 1 }],
+      });
+
+      const resp = await getTask3("Salty Water");
+      expect(resp.status).toBe(200);
+      expect(resp.body).toEqual({
+        name: "Salty Water",
+        cookTime: 0,
+        ingredients: [{ name: "Salt", quantity: 1 }],
+      });
+    });
+    it("Duplicate ingredients in different recipes", async () => {
+      await postEntry({ type: "ingredient", name: "Milk", cookTime: 3 });
+      await postEntry({ type: "ingredient", name: "Cocoa", cookTime: 4 });
+
+      await postEntry({
+        type: "recipe",
+        name: "Chocolate Syrup",
+        requiredItems: [{ name: "Cocoa", quantity: 2 }],
+      });
+
+      await postEntry({
+        type: "recipe",
+        name: "Hot Chocolate",
+        requiredItems: [
+          { name: "Milk", quantity: 1 },
+          { name: "Chocolate Syrup", quantity: 1 },
+        ],
+      });
+
+      const resp = await getTask3("Hot Chocolate");
+      expect(resp.status).toBe(200);
+      expect(resp.body).toEqual({
+        name: "Hot Chocolate",
+        cookTime: 11, // 3 (Milk) + 2*4 (Cocoa)
+        ingredients: [
+          { name: "Milk", quantity: 1 },
+          { name: "Cocoa", quantity: 2 },
+        ],
+      });
+    });
   });
 });
